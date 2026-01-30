@@ -1,0 +1,1 @@
+mklittlefs -u ./output_folder -b 4096 -p 256 -s 0x180000 extracted_littlefs.bin
