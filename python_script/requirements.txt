@@ -1,0 +1,2 @@
+# Hardware communication for ESP32
+esptool>=4.5
