@@ -187,9 +187,9 @@ void loop() {
                                                     sps30_measurement.nc0p5, sps30_measurement.nc1p0, sps30_measurement.nc2p5, sps30_measurement.nc4p0,
                                                     sps30_measurement.nc10p0, sps30_measurement.typicalParticleSize);
     if (error != NO_ERROR) {
-        DEBUG_OUT.print("Error trying to execute readMeasurementValuesUint16(): ");
-        // errorToString(error, errorMessage, sizeof errorMessage);
-        // DEBUG_OUT.println(errorMessage);
+        DEBUG_OUT.print("Could not read from SPS30");
+        sensorPayload.sps30Data.particles = -1;
+        sensorPayload.sps30Data.concentration = -1;
     }else{
         sensorPayload.sps30Data.particles = sps30_measurement.nc0p5;
         sensorPayload.sps30Data.concentration = sps30_measurement.mc2p5;
@@ -197,8 +197,9 @@ void loop() {
 
     PM25_AQI_Data data;
     if (!pmsa_sensor.read(&data)) {
-        DEBUG_OUT.println("Could not read from AQI");
-        delay(500);  // try again in a bit!
+        DEBUG_OUT.println("Could not read from PMSA003");
+        sensorPayload.pmsa003iData.particles = -1;
+        sensorPayload.pmsa003iData.concentration = -1;
     }else{
         sensorPayload.pmsa003iData.particles = data.particles_03um;
         sensorPayload.pmsa003iData.concentration = data.pm25_env;
@@ -210,7 +211,9 @@ void loop() {
         sensorPayload.cubicPm2016.concentration = pm2016_i2c.pm2p5_grimm;
 
     }else{
-        Serial.println("\nRead Failed....\n");
+        Serial.println("Could not read from PM2016");
+        sensorPayload.cubicPm2016.particles = -1;
+        sensorPayload.cubicPm2016.concentration = -1;
     }
 
     PMData s3_data;
@@ -219,7 +222,9 @@ void loop() {
         sensorPayload.cubicPm2012.particles = s3_data.count_0_3;
         sensorPayload.cubicPm2012.concentration = s3_data.pm2_5_grimm;
     }else{
-        Serial.println("\nS3 Read Failed....\n");
+        Serial.println("Could not read from PM2012");
+        sensorPayload.cubicPm2012.particles = -1;
+        sensorPayload.cubicPm2012.concentration = -1;
     }
 
     // displayPmValue();
