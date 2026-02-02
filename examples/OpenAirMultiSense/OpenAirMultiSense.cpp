@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include "OpenAirMultiSense.h"
 
-// #define DEBUG_OUT_ENABLED
+#define DEBUG_OUT_ENABLED
 
 #ifndef DEBUG_OUT_ENABLED
 #define FLASH_MEM
@@ -29,6 +29,7 @@ unsigned long buttonPressTime = 0;
 bool isPressing = false;
 bool longPressTriggered = false;
 bool loggingActive = false;
+uint32_t loop_delay = 0;
 uint32_t button_cnt = 0;
 String log_name = "./sensor_logs";
 const size_t MIN_FREE_SPACE = 200000; // 200KB
@@ -158,7 +159,7 @@ void setup() {
     }
     #ifdef DEBUG_OUT_ENABLED
     readStoredLogs();
-    deleteAllFiles();
+    // deleteAllFiles();
     // deleteSpecificFile("/sensor_logs.bin");
     #endif
 
@@ -182,6 +183,12 @@ void loop() {
     DEBUG_OUT.printf("Timestamp: %d ms\n", sensorPayload.timestamp);
 #endif
 
+    uint32_t time_taken[4];     //[SPS30,003i,PM2012,PM2016]
+    uint32_t tStart_measure;    // Timestamp before start measurement each sensors;
+
+
+    // Reading SPS30 Measurement
+    tStart_measure = micros();
     SensirionMeasurement sps30_measurement;
     error = sps30_sensor.readMeasurementValuesUint16(sps30_measurement.mc1p0, sps30_measurement.mc2p5, sps30_measurement.mc4p0, sps30_measurement.mc10p0,
                                                     sps30_measurement.nc0p5, sps30_measurement.nc1p0, sps30_measurement.nc2p5, sps30_measurement.nc4p0,
@@ -194,7 +201,11 @@ void loop() {
         sensorPayload.sps30Data.particles = sps30_measurement.nc0p5;
         sensorPayload.sps30Data.concentration = sps30_measurement.mc2p5;
     }
+    time_taken[SPS30] = micros() - tStart_measure;
 
+
+    // Reading PMSA003i Measurement
+    tStart_measure = micros();
     PM25_AQI_Data data;
     if (!pmsa_sensor.read(&data)) {
         DEBUG_OUT.println("Could not read from PMSA003");
@@ -204,7 +215,11 @@ void loop() {
         sensorPayload.pmsa003iData.particles = data.particles_03um;
         sensorPayload.pmsa003iData.concentration = data.pm25_env;
     }
+    time_taken[PMSA003I] = micros() - tStart_measure;
 
+
+    // Reading PM2016 Measurement
+    tStart_measure = micros();
     uint8_t ret = pm2016_i2c.read();
     if (ret == 0) {
         sensorPayload.cubicPm2016.particles = pm2016_i2c.number_of_0p3_um;
@@ -215,7 +230,11 @@ void loop() {
         sensorPayload.cubicPm2016.particles = -1;
         sensorPayload.cubicPm2016.concentration = -1;
     }
+    time_taken[PM2016] = micros() - tStart_measure;
 
+
+    // Reading PM2012 Measurement
+    tStart_measure = micros();
     PMData s3_data;
     bool s3_ret = pm2012_uart.readMeasurement(s3_data);
     if(s3_ret == true) {
@@ -228,33 +247,41 @@ void loop() {
         sensorPayload.cubicPm2012.concentration = -1;
         sensorPayload.cubicPm2012Tsi = -1;
     }
+    time_taken[PM2012] = micros() - tStart_measure;
 
-    // displayPmValue();
-    // displayLoggingStatus();
     handleButton();
     systemDisplay(button_cnt);
 
 #ifdef DEBUG_OUT_ENABLED
     // Print out the data for debugging
     DEBUG_OUT.println("SPS30 Data:");
-    DEBUG_OUT.printf(" - Particles >2.5um: %d \n", sensorPayload.sps30Data.particles);
+    DEBUG_OUT.printf(" - Polling Time: %d us\n", time_taken[SPS30]);
+    DEBUG_OUT.printf(" - Particles >0.5um: %d \n", sensorPayload.sps30Data.particles);
     DEBUG_OUT.printf(" - Concentration PM2.5: %d µg/m3\n", sensorPayload.sps30Data.concentration);
+
     DEBUG_OUT.println("PMSA003I Data:");
-    DEBUG_OUT.printf(" - Particles >2.5um: %d \n", sensorPayload.pmsa003iData.particles);
+    DEBUG_OUT.printf(" - Polling Time: %d us\n", time_taken[PMSA003I]);
+    DEBUG_OUT.printf(" - Particles >0.3um: %d \n", sensorPayload.pmsa003iData.particles);
     DEBUG_OUT.printf(" - Concentration PM2.5: %d µg/m3\n", sensorPayload.pmsa003iData.concentration);
+
     DEBUG_OUT.println("Cubic PM2012 Data:");
-    DEBUG_OUT.printf(" - Particles >2.5um: %d \n", sensorPayload.cubicPm2012.particles);
+    DEBUG_OUT.printf(" - Polling Time: %d us\n", time_taken[PM2012]);
+    DEBUG_OUT.printf(" - Particles >0.3um: %d \n", sensorPayload.cubicPm2012.particles);
     DEBUG_OUT.printf(" - Concentration PM2.5 [GRIMM]: %d µg/m3\n", sensorPayload.cubicPm2012.concentration);
     DEBUG_OUT.printf(" - Concentration PM2.5 [TSI]: %d µg/m3\n", sensorPayload.cubicPm2012Tsi);
+
     DEBUG_OUT.println("Cubic PM2016 Data:");
-    DEBUG_OUT.printf(" - Particles >2.5um: %d \n", sensorPayload.cubicPm2016.particles);
+    DEBUG_OUT.printf(" - Polling Time: %d us\n", time_taken[PM2016]);
+    DEBUG_OUT.printf(" - Particles >0.3um: %d \n", sensorPayload.cubicPm2016.particles);
     DEBUG_OUT.printf(" - Concentration PM2.5: %d µg/m3\n", sensorPayload.cubicPm2016.concentration);
     // DEBUG_OUT.printf("sensorPayload raw data: ");
     // for (int i = 0; i < sizeof(sensorPayload); i++) {
     //     DEBUG_OUT.printf("%02x ", ((uint8_t*)&sensorPayload)[i]);
     // }
+    loop_delay = millis()-sensorPayload.timestamp;
+    DEBUG_OUT.printf("\nTotal time (including screen & button): %d ms\n", loop_delay);
     DEBUG_OUT.println("\n");
-    
+
 #else
     // Send the raw binary structure over UART
     // Serial.write((uint8_t*)&sensorPayload, sizeof(sensorPayload));

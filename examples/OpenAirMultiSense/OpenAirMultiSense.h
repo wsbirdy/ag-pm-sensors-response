@@ -28,6 +28,13 @@
 #define SCREEN_HEIGHT 64
 #define OLED_RESET -1   // Set to -1 if your display doesn't have a reset pin
 
+enum sensors{
+    SPS30 = 0,
+    PMSA003I,
+    PM2012,
+    PM2016
+};
+
 struct SensirionMeasurement {
     uint16_t mc1p0;
     uint16_t mc2p5;
