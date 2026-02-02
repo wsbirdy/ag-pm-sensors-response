@@ -11,9 +11,9 @@
 #define cmd_serialNumber                    0x1f
 
 
-PM2012::PM2012(Stream& serial) : _serial(serial) {}
+Cubic_PMsensor_UART::Cubic_PMsensor_UART(Stream& serial) : _serial(serial) {}
 
-bool PM2012::readMeasurement(PMData& data) {
+bool Cubic_PMsensor_UART::readMeasurement(PMData& data) {
     // Command to read concentration and particle number
     uint8_t cmd[] = {0x11, 0x02, cmd_readParticleMeasurement, 0x07, 0xDB};
     _serial.write(cmd, 5);
@@ -52,27 +52,27 @@ bool PM2012::readMeasurement(PMData& data) {
     return true;
 }
 
-bool PM2012::openParticleMeasurement(void){
+bool Cubic_PMsensor_UART::openParticleMeasurement(void){
     uint8_t cmd[] = {0x11, 0x03, cmd_enableParticleMeasurement, 0x02, 0x1E, 0xC0}; // Checksum pre-calculated
     return _sendCommand(cmd, 5);
 }
 
-bool PM2012::closeParticleMeasurement(void){
+bool Cubic_PMsensor_UART::closeParticleMeasurement(void){
     uint8_t cmd[] = {0x11, 0x03, cmd_enableParticleMeasurement, 0x01, 0x1E, 0xC1}; // Checksum pre-calculated
     return _sendCommand(cmd, 5);
 }
 
-bool PM2012::openFanAndLaser() {
+bool Cubic_PMsensor_UART::openFanAndLaser() {
     uint8_t cmd[] = {0x11, 0x03, 0x03, 0x01, 0xE8}; // Checksum pre-calculated
     return _sendCommand(cmd, 5);
 }
 
-bool PM2012::closeFanAndLaser() {
+bool Cubic_PMsensor_UART::closeFanAndLaser() {
     uint8_t cmd[] = {0x11, 0x03, 0x03, 0x00, 0xE9}; // Checksum pre-calculated
     return _sendCommand(cmd, 5);
 }
 
-bool PM2012::getSoftwareVersion(char* version) {
+bool Cubic_PMsensor_UART::getSoftwareVersion(char* version) {
     uint8_t cmd[] = {0x11, 0x01, 0x1E, 0xD0};
     _serial.write(cmd, 4);
     uint8_t resp[20];
@@ -83,7 +83,7 @@ bool PM2012::getSoftwareVersion(char* version) {
     return false;
 }
 
-bool PM2012::getSerialNumber(char* version) {
+bool Cubic_PMsensor_UART::getSerialNumber(char* version) {
     uint8_t cmd[] = {0x11, 0x01, 0x1F, 0xCF};
     _serial.write(cmd, 4);
     uint8_t resp[20];
@@ -94,11 +94,11 @@ bool PM2012::getSerialNumber(char* version) {
     return false;
 }
 
-uint32_t PM2012::parseUint32(uint8_t* buf) {
+uint32_t Cubic_PMsensor_UART::parseUint32(uint8_t* buf) {
     return ((uint32_t)buf[0] << 24) | ((uint32_t)buf[1] << 16) | ((uint32_t)buf[2] << 8) | buf[3];
 }
 
-uint8_t PM2012::calculateChecksum(uint8_t* buf, uint8_t len) {
+uint8_t Cubic_PMsensor_UART::calculateChecksum(uint8_t* buf, uint8_t len) {
     uint8_t sum = 0;
     for (uint8_t i = 0; i < len; i++) {
         sum += buf[i];
@@ -106,7 +106,7 @@ uint8_t PM2012::calculateChecksum(uint8_t* buf, uint8_t len) {
     return (uint8_t)(256 - sum);
 }
 
-bool PM2012::_sendCommand(uint8_t* cmd, uint8_t len) {
+bool Cubic_PMsensor_UART::_sendCommand(uint8_t* cmd, uint8_t len) {
     // Frame: [HEAD][LEN][CMD][DATA][CHKSUM]
 
     // 1. Clear any old data in the serial buffer

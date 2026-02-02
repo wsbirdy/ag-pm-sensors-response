@@ -20,7 +20,7 @@ Adafruit_SH1106G display = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, 
 SensirionUartSps30 sps30_sensor;
 Adafruit_PM25AQI pmsa_sensor = Adafruit_PM25AQI();
 PM2008_I2C pm2016_i2c;
-PM2012 pm_uart(PM_SERIAL_PORT);
+Cubic_PMsensor_UART pm2012_uart(PM_SERIAL_PORT);
 SensorPayload sensorPayload;
 
 static char errorMessage[64];
@@ -214,7 +214,7 @@ void loop() {
     }
 
     PMData s3_data;
-    bool s3_ret = pm_uart.readMeasurement(s3_data);
+    bool s3_ret = pm2012_uart.readMeasurement(s3_data);
     if(s3_ret == true) {
         sensorPayload.cubicPm2012.particles = s3_data.count_0_3;
         sensorPayload.cubicPm2012.concentration = s3_data.pm2_5_grimm;

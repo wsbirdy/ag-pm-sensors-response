@@ -18,10 +18,10 @@ struct PMData {
     uint32_t count_10;
 };
 
-class PM2012 {
+class Cubic_PMsensor_UART {
 public:
-    PM2012(Stream& serial);
-    ~PM2012(){};
+    Cubic_PMsensor_UART(Stream& serial);
+    ~Cubic_PMsensor_UART(){};
     void begin(HardwareSerial& serial) {_serial = serial;}
     bool readMeasurement(PMData& data);
     bool openParticleMeasurement(void);
