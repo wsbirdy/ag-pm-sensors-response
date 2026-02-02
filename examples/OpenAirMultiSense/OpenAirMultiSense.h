@@ -47,14 +47,15 @@ struct __attribute__((packed)) SensorData {
     uint16_t concentration;     // 2 bytes for concentration in µg/m3
 };
 
-// Total size = 28 bytes
+// Total size = 30 bytes
 struct __attribute__((packed)) SensorPayload {
     char header[2] = {0x4f, 0x41};  // 2 bytes
     uint32_t counter;               // 4 bytes
     uint32_t timestamp;             // 4 bytes  [ms]
     struct SensorData sps30Data;    // 4 bytes from SPS30
     struct SensorData pmsa003iData; // 4 bytes from PMSA003I
-    struct SensorData cubicPm2012;  // 4 bytes from Cubic PM2012
+    struct SensorData cubicPm2012;  // 4 bytes from Cubic PM2012 [GRIMM]
+    uint16_t cubicPm2012Tsi;        // 2 bytes from Cubic PM2012 [TSI concentration]
     struct SensorData cubicPm2016;  // 4 bytes from Cubic PM2016
     char terminater[2] = {0xaa, 0xbb};    // 2 bytes
 };

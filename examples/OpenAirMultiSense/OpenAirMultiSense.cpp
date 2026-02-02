@@ -221,10 +221,12 @@ void loop() {
     if(s3_ret == true) {
         sensorPayload.cubicPm2012.particles = s3_data.count_0_3;
         sensorPayload.cubicPm2012.concentration = s3_data.pm2_5_grimm;
+        sensorPayload.cubicPm2012Tsi = s3_data.pm2_5_tsi;
     }else{
         Serial.println("Could not read from PM2012");
         sensorPayload.cubicPm2012.particles = -1;
         sensorPayload.cubicPm2012.concentration = -1;
+        sensorPayload.cubicPm2012Tsi = -1;
     }
 
     // displayPmValue();
@@ -242,7 +244,8 @@ void loop() {
     DEBUG_OUT.printf(" - Concentration PM2.5: %d µg/m3\n", sensorPayload.pmsa003iData.concentration);
     DEBUG_OUT.println("Cubic PM2012 Data:");
     DEBUG_OUT.printf(" - Particles >2.5um: %d \n", sensorPayload.cubicPm2012.particles);
-    DEBUG_OUT.printf(" - Concentration PM2.5: %d µg/m3\n", sensorPayload.cubicPm2012.concentration);
+    DEBUG_OUT.printf(" - Concentration PM2.5 [GRIMM]: %d µg/m3\n", sensorPayload.cubicPm2012.concentration);
+    DEBUG_OUT.printf(" - Concentration PM2.5 [TSI]: %d µg/m3\n", sensorPayload.cubicPm2012Tsi);
     DEBUG_OUT.println("Cubic PM2016 Data:");
     DEBUG_OUT.printf(" - Particles >2.5um: %d \n", sensorPayload.cubicPm2016.particles);
     DEBUG_OUT.printf(" - Concentration PM2.5: %d µg/m3\n", sensorPayload.cubicPm2016.concentration);
@@ -347,7 +350,7 @@ void readStoredLogs() {
                     Serial.printf("Count: %d | Time: %d ms\n", entry.counter, entry.timestamp);
                     Serial.printf("  SPS30   : particles=%d concentration=%d\n", entry.sps30Data.particles, entry.sps30Data.concentration);
                     Serial.printf("  PMSA003i: particles=%d concentration=%d\n", entry.pmsa003iData.particles, entry.pmsa003iData.concentration);
-                    Serial.printf("  PM2012A : particles=%d concentration=%d\n", entry.cubicPm2012.particles, entry.cubicPm2012.concentration);
+                    Serial.printf("  PM2012A : particles=%d GRIMM_conc=%d, TSI_conc=%d\n", entry.cubicPm2012.particles, entry.cubicPm2012.concentration, entry.cubicPm2012Tsi);
                     Serial.printf("  PM2016  : particles=%d concentration=%d\n", entry.cubicPm2016.particles, entry.cubicPm2016.concentration);
                 #endif
                 } else {
