@@ -170,18 +170,18 @@ void setup() {
 
 void loop() {
     
+    delay(READ_INTERVAL - loop_delay); // 1 second delay between readings
+    sensorPayload.counter++;
+    sensorPayload.timestamp = millis();
+#ifdef DEBUG_OUT_ENABLED
+    DEBUG_OUT.printf("Reading - #%d \n", sensorPayload.counter);
+    DEBUG_OUT.printf("Timestamp: %d ms\n", sensorPayload.timestamp);
+#endif
+
     //Reset Watchdog
     digitalWrite(WATCHDOG_DONE_PIN,HIGH);
     delay(1);
     digitalWrite(WATCHDOG_DONE_PIN,LOW);
-
-    delay(READ_INTERVAL-1); // 1 second delay between readings
-    sensorPayload.counter++;
-    sensorPayload.timestamp = millis();
-#ifdef DEBUG_OUT_ENABLED
-    DEBUG_OUT.printf("Reading success - #%d \n", sensorPayload.counter);
-    DEBUG_OUT.printf("Timestamp: %d ms\n", sensorPayload.timestamp);
-#endif
 
     uint32_t time_taken[4];     //[SPS30,003i,PM2012,PM2016]
     uint32_t tStart_measure;    // Timestamp before start measurement each sensors;
@@ -279,8 +279,7 @@ void loop() {
     //     DEBUG_OUT.printf("%02x ", ((uint8_t*)&sensorPayload)[i]);
     // }
     loop_delay = millis()-sensorPayload.timestamp;
-    DEBUG_OUT.printf("\nTotal time (including screen & button): %d ms\n", loop_delay);
-    DEBUG_OUT.println("\n");
+    DEBUG_OUT.printf("\nTotal time (including screen & button): %d ms\n\n", loop_delay);
 
 #else
     // Send the raw binary structure over UART
