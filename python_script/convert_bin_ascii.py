@@ -14,12 +14,13 @@ import sys
 # H  : uint16_t (PMSA003I Particles)
 # H  : uint16_t (PMSA003I Concentration)
 # H  : uint16_t (PM2012 Particles)
-# H  : uint16_t (PM2012 Concentration)
+# H  : uint16_t (PM2012 Concentration GRIMM)
+# H  : uint16_t (PM2012 Concentration TSI)
 # H  : uint16_t (PM2016 Particles)
 # H  : uint16_t (PM2016 Concentration)
 # 2B : uint8_t x 2 (Terminator 0xAA, 0xBB)
-# Total Size: 28 bytes
-PACKET_FORMAT = '<2sIIHHHHHHHHBB'
+# Total Size: 30 bytes
+PACKET_FORMAT = '<2sIIHHHHHHHHHBB'
 PACKET_SIZE = struct.calcsize(PACKET_FORMAT)
 HEADER = b'OA'
 FOOTER = (0xAA, 0xBB)
@@ -49,7 +50,7 @@ def decode_sensor_file(input_filename):
 
     records_saved = 0
     with open(output_filename, 'w') as csv_file:
-        csv_file.write("Counter,Timestamp_ms,SPS30_Particles,SPS30_Conc,PMSA_Particles,PMSA_Conc,PM2012_Particles,PM2012_Conc,PM2016_Particles,PM2016_Conc\n")
+        csv_file.write("Counter,Timestamp_ms,SPS30_Particles,SPS30_Conc,PMSA_Particles,PMSA_Conc,PM2012_Particles,PM2012_Conc_GRIMM,PM2012_Conc_TSI,PM2016_Particles,PM2016_Conc\n")
         
         i = 0
         # Scan through the raw bytes one by one
@@ -61,11 +62,11 @@ def decode_sensor_file(input_filename):
                 
                 try:
                     # Unpack the block
-                    header, count, ts, s1_p, s1_c, s2_p, s2_c, s3_p, s3_c, s4_p, s4_c, t1, t2 = struct.unpack(PACKET_FORMAT, potential_packet)
+                    header, count, ts, s1_p, s1_c, s2_p, s2_c, s3_p, s3_c_grimm, s3_c_tsi, s4_p, s4_c, t1, t2 = struct.unpack(PACKET_FORMAT, potential_packet)
                     print(f"whole packet: {potential_packet.hex()}")
                     # Verify the Terminator (0xAA, 0xBB)
                     if (t1, t2) == FOOTER:
-                        csv_file.write(f"{count},{ts},{s1_p},{s1_c},{s2_p},{s2_c},{s3_p},{s3_c},{s4_p},{s4_c},\n")
+                        csv_file.write(f"{count},{ts},{s1_p},{s1_c},{s2_p},{s2_c},{s3_p},{s3_c_grimm},{s3_c_tsi},{s4_p},{s4_c},\n")
                         records_saved += 1
                         i += PACKET_SIZE  # Valid packet, skip ahead 20 bytes
                         continue
