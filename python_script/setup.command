@@ -24,8 +24,14 @@ fi
 # 3. Install Python requirements
 source venv/bin/activate
 echo "📥 Installing Python libraries..."
-pip install --upgrade pip
-pip install esptool pyserial
+
+# This command installs everything listed in your requirements.txt
+if [ -f "requirements.txt" ]; then
+    pip install -r requirements.txt
+else
+    echo "⚠️  requirements.txt not found. Installing defaults..."
+    pip install esptool pyserial pandas matplotlib
+fi
 
 echo "------------------------------------------"
 echo "✅ Setup complete! You can now use run_decoder.command"
