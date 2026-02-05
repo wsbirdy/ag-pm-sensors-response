@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include "OpenAirMultiSense.h"
 
-#define DEBUG_OUT_ENABLED
+// #define DEBUG_OUT_ENABLED
 
 #ifndef DEBUG_OUT_ENABLED
 #define FLASH_MEM
@@ -186,24 +186,6 @@ void loop() {
     uint32_t time_taken[4];     //[SPS30,003i,PM2012,PM2016]
     uint32_t tStart_measure;    // Timestamp before start measurement each sensors;
 
-
-    // Reading SPS30 Measurement
-    tStart_measure = micros();
-    SensirionMeasurement sps30_measurement;
-    error = sps30_sensor.readMeasurementValuesUint16(sps30_measurement.mc1p0, sps30_measurement.mc2p5, sps30_measurement.mc4p0, sps30_measurement.mc10p0,
-                                                    sps30_measurement.nc0p5, sps30_measurement.nc1p0, sps30_measurement.nc2p5, sps30_measurement.nc4p0,
-                                                    sps30_measurement.nc10p0, sps30_measurement.typicalParticleSize);
-    if (error != NO_ERROR) {
-        DEBUG_OUT.print("Could not read from SPS30");
-        sensorPayload.sps30Data.particles = -1;
-        sensorPayload.sps30Data.concentration = -1;
-    }else{
-        sensorPayload.sps30Data.particles = sps30_measurement.nc0p5;
-        sensorPayload.sps30Data.concentration = sps30_measurement.mc2p5;
-    }
-    time_taken[SPS30] = micros() - tStart_measure;
-
-
     // Reading PMSA003i Measurement
     tStart_measure = micros();
     PM25_AQI_Data data;
@@ -216,22 +198,6 @@ void loop() {
         sensorPayload.pmsa003iData.concentration = data.pm25_env;
     }
     time_taken[PMSA003I] = micros() - tStart_measure;
-
-
-    // Reading PM2016 Measurement
-    tStart_measure = micros();
-    uint8_t ret = pm2016_i2c.read();
-    if (ret == 0) {
-        sensorPayload.cubicPm2016.particles = pm2016_i2c.number_of_0p3_um;
-        sensorPayload.cubicPm2016.concentration = pm2016_i2c.pm2p5_grimm;
-
-    }else{
-        Serial.println("Could not read from PM2016");
-        sensorPayload.cubicPm2016.particles = -1;
-        sensorPayload.cubicPm2016.concentration = -1;
-    }
-    time_taken[PM2016] = micros() - tStart_measure;
-
 
     // Reading PM2012 Measurement
     tStart_measure = micros();
@@ -248,6 +214,38 @@ void loop() {
         sensorPayload.cubicPm2012Tsi = -1;
     }
     time_taken[PM2012] = micros() - tStart_measure;
+
+
+    // Reading PM2016 Measurement
+    tStart_measure = micros();
+    uint8_t ret = pm2016_i2c.read();
+    if (ret == 0) {
+        sensorPayload.cubicPm2016.particles = pm2016_i2c.number_of_0p3_um;
+        sensorPayload.cubicPm2016.concentration = pm2016_i2c.pm2p5_grimm;
+
+    }else{
+        Serial.println("Could not read from PM2016");
+        sensorPayload.cubicPm2016.particles = -1;
+        sensorPayload.cubicPm2016.concentration = -1;
+    }
+    time_taken[PM2016] = micros() - tStart_measure;
+
+    
+    // Reading SPS30 Measurement
+    tStart_measure = micros();
+    SensirionMeasurement sps30_measurement;
+    error = sps30_sensor.readMeasurementValuesUint16(sps30_measurement.mc1p0, sps30_measurement.mc2p5, sps30_measurement.mc4p0, sps30_measurement.mc10p0,
+                                                    sps30_measurement.nc0p5, sps30_measurement.nc1p0, sps30_measurement.nc2p5, sps30_measurement.nc4p0,
+                                                    sps30_measurement.nc10p0, sps30_measurement.typicalParticleSize);
+    if (error != NO_ERROR) {
+        DEBUG_OUT.print("Could not read from SPS30");
+        sensorPayload.sps30Data.particles = -1;
+        sensorPayload.sps30Data.concentration = -1;
+    }else{
+        sensorPayload.sps30Data.particles = sps30_measurement.nc0p5;
+        sensorPayload.sps30Data.concentration = sps30_measurement.mc2p5;
+    }
+    time_taken[SPS30] = micros() - tStart_measure;
 
     handleButton();
     systemDisplay(button_cnt);
