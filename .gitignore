@@ -5,5 +5,9 @@
 .vscode/ipch
 .log/
 .test/
+python_script/decoded_results
+python_script/extracted_files
+python_script/output_folder
+python_script/PmSensors_reponse_results_graph
 *.bin
 *.elf
