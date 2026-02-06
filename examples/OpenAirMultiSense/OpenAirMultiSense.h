@@ -10,6 +10,8 @@
 #include "LittleFS.h"
 #include <Adafruit_GFX.h>
 #include <Adafruit_SH110X.h>
+#include <vector>
+#include <algorithm>
 
 // AirGradient Open Air ESP32C3 - Pin Map
 #define UART2_RX            0

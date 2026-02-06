@@ -230,7 +230,7 @@ void loop() {
     }
     time_taken[PM2016] = micros() - tStart_measure;
 
-    
+
     // Reading SPS30 Measurement
     tStart_measure = micros();
     SensirionMeasurement sps30_measurement;
@@ -613,10 +613,42 @@ void displayFilesSystem(){
     display.drawLine(0,12,128,12,SH110X_WHITE);
     display.setCursor(0, 15);
 
+    std::vector<String> fileList;
     File root = LittleFS.open("/");
     File file = root.openNextFile();
 
+    // 1. Collect all filenames
     while (file) {
+        fileList.push_back(String(file.name()));
+        file = root.openNextFile();
+    }
+
+    // 2. Sort names Descending (Natural Numerical Sort: 20, 19, ... 2, 1)
+    std::sort(fileList.begin(), fileList.end(), [](String a, String b) {
+        // Function to extract the number from a filename like "pmLogs12.bin"
+        auto extractNum = [](String s) {
+            String numStr = "";
+            for (int i = 0; i < s.length(); i++) {
+                if (isDigit(s[i])) numStr += s[i];
+            }
+            return numStr.length() > 0 ? numStr.toInt() : 0;
+        };
+
+        int numA = extractNum(a);
+        int numB = extractNum(b);
+
+        if (numA != numB) {
+            return numA > numB; // Higher number first (20 > 19)
+        }
+        return a > b; // Fallback to alphabetical if numbers are the same
+    });
+
+    // 3. Display the sorted list
+    int count = 0;
+    for (const String& name : fileList) {
+        if (count >= 6) break; // Limit to 6 files to fit on screen
+        
+        File f = LittleFS.open("/" + name, "r");
         #ifdef DEBUG_OUT_ENABLED
         // Print file details
         Serial.print("File: ");
@@ -625,14 +657,16 @@ void displayFilesSystem(){
         Serial.print(file.size());
         Serial.println(" bytes");
         #endif
-
-        // Display file name and size line-by-line
-        display.print(file.name());
+        display.print(name);
         display.print(" ");
-        display.print(file.size());
+        display.print(f.size());
         display.println(" B");
+        f.close();
+        count++;
+    }
 
-        file = root.openNextFile();
+    if (fileList.empty()) {
+        display.println("No files found.");
     }
     #ifdef DEBUG_OUT_ENABLES
     Serial.println("-------------------------");
