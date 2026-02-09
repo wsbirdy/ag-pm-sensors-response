@@ -7,8 +7,8 @@
 #define FLASH_MEM
 #endif
 
-#define PM_SERIAL_PORT  Serial1
-#define SENSOR_SERIAL_INTERFACE Serial0
+#define CUBIC_SERIAL_PORT  Serial1
+#define SPS30_SERIAL_PORT Serial0
 #define DEBUG_OUT Serial
 #define DEBUG_OUT_BAUD 115200
 #define NO_ERROR 0
@@ -20,7 +20,7 @@ Adafruit_SH1106G display = Adafruit_SH1106G(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, 
 SensirionUartSps30 sps30_sensor;
 Adafruit_PM25AQI pmsa_sensor = Adafruit_PM25AQI();
 PM2008_I2C pm2016_i2c;
-Cubic_PMsensor_UART pm2012_uart(PM_SERIAL_PORT);
+Cubic_PMsensor_UART pm2012_uart(CUBIC_SERIAL_PORT);
 SensorPayload sensorPayload;
 
 static char errorMessage[64];
@@ -113,8 +113,8 @@ void setup() {
     // Trigger on CHANGE (both press and release)
     attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), handleButtonInterrupt, CHANGE);
 
-    SENSOR_SERIAL_INTERFACE.begin(DEBUG_OUT_BAUD);
-    if(SENSOR_SERIAL_INTERFACE){
+    SPS30_SERIAL_PORT.begin(DEBUG_OUT_BAUD);
+    if(SPS30_SERIAL_PORT){
         DEBUG_OUT.println("Serial0 initialized successfully.");
     } else {
         DEBUG_OUT.println("Serial0 initialization failed!");
@@ -122,7 +122,7 @@ void setup() {
     
     int8_t serialNumber[32] = {0};
     int8_t productType[9] = {0};
-    sps30_sensor.begin(SENSOR_SERIAL_INTERFACE);
+    sps30_sensor.begin(SPS30_SERIAL_PORT);
     sps30_sensor.stopMeasurement();
     error |= sps30_sensor.readSerialNumber(serialNumber, 32); delay(100);
     error |= sps30_sensor.readProductType(productType, 9); delay(100);
@@ -147,9 +147,9 @@ void setup() {
     }
     pm2016_i2c.command();
 
-    PM_SERIAL_PORT.begin(9600, SERIAL_8N1, UART2_RX, UART2_TX);
+    CUBIC_SERIAL_PORT.begin(9600, SERIAL_8N1, UART2_RX, UART2_TX);
     startWait = millis();
-    while (!PM_SERIAL_PORT && (millis() - startWait < 5000)) {
+    while (!CUBIC_SERIAL_PORT && (millis() - startWait < 5000)) {
         delay(100); 
     }
     Serial.println("Cubic PM UART sensor initialize.");
