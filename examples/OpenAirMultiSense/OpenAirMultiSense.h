@@ -2,6 +2,7 @@
 #define OpenAirMultiSense_h
 
 #include <Wire.h>
+#include "PMS.h"
 #include "Adafruit_PM25AQI.h"
 #include "SensirionUartSps30.h"
 #include "pm2008_i2c.h"

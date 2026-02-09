@@ -7,6 +7,9 @@
 #define FLASH_MEM
 #endif
 
+// #define PLANTOWER_PMS5003
+
+#define PMS_SERIAL_PORT Serial0
 #define CUBIC_SERIAL_PORT  Serial1
 #define SPS30_SERIAL_PORT Serial0
 #define DEBUG_OUT Serial
@@ -22,6 +25,8 @@ Adafruit_PM25AQI pmsa_sensor = Adafruit_PM25AQI();
 PM2008_I2C pm2016_i2c;
 Cubic_PMsensor_UART pm2012_uart(CUBIC_SERIAL_PORT);
 SensorPayload sensorPayload;
+PMS pms(PMS_SERIAL_PORT);
+PMS::DATA pms_buffer;
 
 static char errorMessage[64];
 static int16_t error;
@@ -154,6 +159,10 @@ void setup() {
     }
     Serial.println("Cubic PM UART sensor initialize.");
 
+    PMS_SERIAL_PORT.begin(9600);  // Plantower Serial Port
+    pms.activeMode();             // Switch to active mode
+    pms.wakeUp();                 // Waking up, wait for stable readings
+
     if (!LittleFS.begin(true)) {
         Serial.println("LittleFS Mount Failed");
     }
@@ -186,6 +195,7 @@ void loop() {
     uint32_t time_taken[4];     //[SPS30,003i,PM2012,PM2016]
     uint32_t tStart_measure;    // Timestamp before start measurement each sensors;
 
+#ifndef PLANTOWER_PMS5003
     // Reading PMSA003i Measurement
     tStart_measure = micros();
     PM25_AQI_Data data;
@@ -198,6 +208,19 @@ void loop() {
         sensorPayload.pmsa003iData.concentration = data.pm25_env;
     }
     time_taken[PMSA003I] = micros() - tStart_measure;
+#else
+    // Reading PMS5003 Measurement
+    tStart_measure = micros();
+    if (pms.readUntil(pms_buffer)) {
+        sensorPayload.pmsa003iData.particles = pms_buffer.PM_PC_0_3;
+        sensorPayload.pmsa003iData.concentration = pms_buffer.PM_AE_UG_2_5;
+    }else{
+        DEBUG_OUT.println("Could not read from PMS-5003");
+        sensorPayload.pmsa003iData.particles = -1;
+        sensorPayload.pmsa003iData.concentration = -1;
+    }
+    time_taken[PMSA003I] = micros() - tStart_measure;
+#endif
 
     // Reading PM2012 Measurement
     tStart_measure = micros();
