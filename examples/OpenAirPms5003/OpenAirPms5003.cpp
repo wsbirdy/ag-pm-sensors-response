@@ -1,7 +1,10 @@
 #include <Arduino.h>
 #include "PMS.h"
 
-#define PMS_SERIAL_PORT Serial0
+#define UART2_RX            0
+#define UART2_TX            1
+
+#define PMS_SERIAL_PORT Serial1
 PMS pms(PMS_SERIAL_PORT);
 PMS::DATA data;
 
@@ -13,7 +16,8 @@ void setup()
     while (!Serial && (millis() - startWait < 5000)) {
         delay(100); 
     }
-    PMS_SERIAL_PORT.begin(9600);  // Plantower Serial Port
+    // PMS_SERIAL_PORT.begin(9600);  // Plantower Serial Port
+    PMS_SERIAL_PORT.begin(9600, SERIAL_8N1, UART2_RX, UART2_TX);
     pms.activeMode();             // Switch to active mode
 
     Serial.println("Waking up, wait 30 seconds for stable readings...");
