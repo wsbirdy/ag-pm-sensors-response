@@ -112,19 +112,19 @@ def plot_data(file_path):
     # --- PART 1: GLOBAL COMPARISON PLOTS (FIXED COLORS) ---
     # Global Particles
     plt.figure(figsize=CFG["fig_size"])
-    plt.plot(x_data, df['S1_P'], label=CFG["legends"]["S1"], color=CFG["colors"]["S1"])
-    plt.plot(x_data, df['S2_P'], label=CFG["legends"]["S2"], color=CFG["colors"]["S2"])
-    plt.plot(x_data, df['S3_P'], label=CFG["legends"]["S3"], color=CFG["colors"]["S3_Grimm"])
-    plt.plot(x_data, df['S4_P'], label=CFG["legends"]["S4"], color=CFG["colors"]["S4"])
+    plt.plot(x_data, df['S1_P'], label=CFG["legends"]["S1"], color=CFG["colors"]["S1"], marker='o', markersize=2)
+    plt.plot(x_data, df['S2_P'], label=CFG["legends"]["S2"], color=CFG["colors"]["S2"], marker='o', markersize=2)
+    plt.plot(x_data, df['S3_P'], label=CFG["legends"]["S3"], color=CFG["colors"]["S3_Grimm"], marker='o', markersize=2)
+    plt.plot(x_data, df['S4_P'], label=CFG["legends"]["S4"], color=CFG["colors"]["S4"], marker='o', markersize=2)
     finalize_plot("Comparison_Particles", "Comparison: Particles", CFG["y_label_p"])
 
     # Global Concentrations
     plt.figure(figsize=CFG["fig_size"])
-    plt.plot(x_data, df['S1_C'], label=CFG["legends"]["S1"], color=CFG["colors"]["S1"])
-    plt.plot(x_data, df['S2_C'], label=CFG["legends"]["S2"], color=CFG["colors"]["S2"])
-    plt.plot(x_data, df['S3_C_Grimm'], label="PM2012 (Grimm)", color=CFG["colors"]["S3_Grimm"])
-    plt.plot(x_data, df['S3_C_TSI'], label="PM2012 (TSI)", color=CFG["colors"]["S3_TSI"], linestyle='--')
-    plt.plot(x_data, df['S4_C'], label=CFG["legends"]["S4"], color=CFG["colors"]["S4"])
+    plt.plot(x_data, df['S1_C'], label=CFG["legends"]["S1"], color=CFG["colors"]["S1"], marker='o', markersize=2)
+    plt.plot(x_data, df['S2_C'], label=CFG["legends"]["S2"], color=CFG["colors"]["S2"], marker='o', markersize=2)
+    plt.plot(x_data, df['S3_C_Grimm'], label="PM2012 (Grimm)", color=CFG["colors"]["S3_Grimm"], marker='o', markersize=2)
+    plt.plot(x_data, df['S3_C_TSI'], label="PM2012 (TSI)", color=CFG["colors"]["S3_TSI"], linestyle='--', marker='o', markersize=2)
+    plt.plot(x_data, df['S4_C'], label=CFG["legends"]["S4"], color=CFG["colors"]["S4"], marker='o', markersize=2)
     finalize_plot("Comparison_Concentrations", "Comparison: Concentrations", CFG["y_label_c"])
 
     # --- PART 2: INDIVIDUAL SENSOR PLOTS (FIXED COLORS) ---
@@ -138,16 +138,16 @@ def plot_data(file_path):
     for s in sensors:
         # Particles
         plt.figure(figsize=CFG["fig_size"])
-        plt.plot(x_data, df[s["P"]], color=s["col"], label=f"{s['name']} Particles")
+        plt.plot(x_data, df[s["P"]], color=s["col"], label=f"{s['name']} Particles", marker='o', markersize=2)
         finalize_plot(f"{s['name']}_Particles", f"{s['name']}: Particle Data", CFG["y_label_p"])
 
         # Concentration
         plt.figure(figsize=CFG["fig_size"])
         if s["id"] == "S3":
-            plt.plot(x_data, df["S3_C_Grimm"], color=CFG["colors"]["S3_Grimm"], label="PM2012 Grimm")
-            plt.plot(x_data, df["S3_C_TSI"], color=CFG["colors"]["S3_TSI"], label="PM2012 TSI", linestyle='--')
+            plt.plot(x_data, df["S3_C_Grimm"], color=CFG["colors"]["S3_Grimm"], label="PM2012 Grimm", marker='o', markersize=2)
+            plt.plot(x_data, df["S3_C_TSI"], color=CFG["colors"]["S3_TSI"], label="PM2012 TSI", linestyle='--', marker='o', markersize=2)
         else:
-            plt.plot(x_data, df[s["C"][0]], color=s["col"], label=f"{s['name']} Conc")
+            plt.plot(x_data, df[s["C"][0]], color=s["col"], label=f"{s['name']} Conc", marker='o', markersize=2)
         finalize_plot(f"{s['name']}_Concentration", f"{s['name']}: Concentration Data", CFG["y_label_c"])
 
 if __name__ == "__main__":
