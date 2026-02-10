@@ -1,15 +1,16 @@
 #include <Arduino.h>
 #include "OpenAirMultiSense.h"
 
-// #define DEBUG_OUT_ENABLED
+#define DEBUG_OUT_ENABLED
 
 #ifndef DEBUG_OUT_ENABLED
 #define FLASH_MEM
 #endif
 
-// #define PLANTOWER_PMS5003
+#define PLANTOWER_PMS5003
 
-#define PMS_SERIAL_PORT Serial0
+#define PMS5003_SERIAL_PORT Serial0
+#define PMS7003_SERIAL_PORT Serial1
 #define CUBIC_SERIAL_PORT  Serial1
 #define SPS30_SERIAL_PORT Serial0
 #define DEBUG_OUT Serial
@@ -25,8 +26,12 @@ Adafruit_PM25AQI pmsa_sensor = Adafruit_PM25AQI();
 PM2008_I2C pm2016_i2c;
 Cubic_PMsensor_UART pm2012_uart(CUBIC_SERIAL_PORT);
 SensorPayload sensorPayload;
-PMS pms(PMS_SERIAL_PORT);
-PMS::DATA pms_buffer;
+
+PMS pms5003(PMS5003_SERIAL_PORT);
+PMS::DATA pms5003_buffer;
+
+PMS pms7003(PMS7003_SERIAL_PORT);
+PMS::DATA pms7003_buffer;
 
 static char errorMessage[64];
 static int16_t error;
@@ -37,7 +42,7 @@ bool loggingActive = false;
 uint32_t loop_delay = 0;
 uint32_t button_cnt = 0;
 String log_name = "./sensor_logs";
-const size_t MIN_FREE_SPACE = 200000; // 200KB
+const size_t MIN_FREE_SPACE = 600000; // 200KB
 
 // 'volatile' is required for variables used inside interrupts
 volatile unsigned long pressStartTime = 0;
@@ -125,6 +130,7 @@ void setup() {
         DEBUG_OUT.println("Serial0 initialization failed!");
     }
     
+    #ifndef PLANTOWER_PMS5003
     int8_t serialNumber[32] = {0};
     int8_t productType[9] = {0};
     sps30_sensor.begin(SPS30_SERIAL_PORT);
@@ -159,9 +165,18 @@ void setup() {
     }
     Serial.println("Cubic PM UART sensor initialize.");
 
-    PMS_SERIAL_PORT.begin(9600);  // Plantower Serial Port
-    pms.activeMode();             // Switch to active mode
-    pms.wakeUp();                 // Waking up, wait for stable readings
+    #else
+    PMS5003_SERIAL_PORT.begin(9600);    // Plantower Serial Port
+    pms5003.activeMode();               // Switch to active mode
+    pms5003.wakeUp();                   // Waking up, wait for stable readings
+    delay(100);                         // Delay wake up time
+
+    PMS7003_SERIAL_PORT.begin(9600,     // Plantower Serial Port
+                        SERIAL_8N1, 
+                        UART2_RX, UART2_TX);    
+    pms7003.activeMode();               // Switch to active mode
+    pms7003.wakeUp();                   // Waking up, wait for stable readings
+    #endif
 
     if (!LittleFS.begin(true)) {
         Serial.println("LittleFS Mount Failed");
@@ -211,11 +226,23 @@ void loop() {
 #else
     // Reading PMS5003 Measurement
     tStart_measure = micros();
-    if (pms.readUntil(pms_buffer)) {
-        sensorPayload.pmsa003iData.particles = pms_buffer.PM_PC_0_3;
-        sensorPayload.pmsa003iData.concentration = pms_buffer.PM_AE_UG_2_5;
+    if (pms5003.readUntil(pms5003_buffer)) {
+        sensorPayload.pmsa003iData.particles = pms5003_buffer.PM_PC_0_3;
+        sensorPayload.pmsa003iData.concentration = pms5003_buffer.PM_AE_UG_2_5;
     }else{
         DEBUG_OUT.println("Could not read from PMS-5003");
+        sensorPayload.pmsa003iData.particles = -1;
+        sensorPayload.pmsa003iData.concentration = -1;
+    }
+    time_taken[PMSA003I] = micros() - tStart_measure;
+
+    // Reading PMS7003 Measurement
+    tStart_measure = micros();
+    if (pms7003.readUntil(pms7003_buffer)) {
+        sensorPayload.pmsa003iData.particles = pms7003_buffer.PM_PC_0_3;
+        sensorPayload.pmsa003iData.concentration = pms7003_buffer.PM_AE_UG_2_5;
+    }else{
+        DEBUG_OUT.println("Could not read from PMS-7003");
         sensorPayload.pmsa003iData.particles = -1;
         sensorPayload.pmsa003iData.concentration = -1;
     }
