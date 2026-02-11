@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "PMS.h"
+#include "PMS_custom.h"
 
 #define UART2_RX            0
 #define UART2_TX            1
